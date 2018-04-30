@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <!-- d3, crossfilter and dc must be loaded in this specific order -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.js"></script>
+    
+    <title>Document</title>
+</head>
+<body>
+    <div id="spend-chart"></div>
+    <div id="store-chart"></div>
+    <div id="state-chart"></div>
+    
+    <script>
+        let transactionsData = [
+            { "name": "Tom", "store": "ACME", "state": "NY", "spend": 100 },
+            { "name": "Tom", "store": "Big Co", "state": "NY", "spend": 200 },
+            { "name": "Bob", "store": "ACME", "state": "FL", "spend": 150 },
+            { "name": "Bob", "store": "ACME", "state": "NY", "spend": 200 },
+            { "name": "Bob", "store": "Big Co", "state": "FL", "spend": 75 },
+            { "name": "Bob", "store": "Big Co", "state": "NY", "spend": 50 },
+            { "name": "Alice", "store": "ACME", "state": "FL", "spend": 200 },
+            { "name": "Alice", "store": "Big Co", "state": "NY", "spend": 350 },
+        ];
+        
+        let ndx = crossfilter(transactionsData);
+        
+        let nameDim = ndx.dimension(dc.pluck("name"));
+        let totalSpend = nameDim.group().reduceSum(dc.pluck("spend"))
+        
+        let spendChart = dc.barChart("#spend-chart");
+        
+        spendChart
+            .width(300)
+            .height(150)
+            .dimension(nameDim)
+            .group(totalSpend)
+            .x(d3.scale.ordinal())
+            .xUnits(dc.units.ordinal)
+            .xAxisLabel("Person")
+            .yAxis().ticks(4);
+            
+        let storeDim = ndx.dimension(dc.pluck("store"));
+        let totalSpendByStore = storeDim.group().reduceSum(dc.pluck("spend"))
+        
+        let storeChart = dc.barChart("#store-chart");
+        
+        storeChart
+            .width(300)
+            .height(150)
+            .dimension(storeDim)
+            .group(totalSpendByStore)
+            .x(d3.scale.ordinal())
+            .xUnits(dc.units.ordinal)
+            .xAxisLabel("Store")
+            .yAxis().ticks(4);
+            
+        let stateDim = ndx.dimension(dc.pluck("state"));
+        let totalSpendByState = stateDim.group().reduceSum(dc.pluck("spend"))
+        
+        let stateChart = dc.barChart("#state-chart");
+        
+        stateChart
+            .width(300)
+            .height(150)
+            .dimension(stateDim)
+            .group(totalSpendByState)
+            .x(d3.scale.ordinal())
+            .xUnits(dc.units.ordinal)
+            .xAxisLabel("State")
+            .yAxis().ticks(4);
+            
+        dc.renderAll();
+        
+        
+    // crossfilter works on dimensions and groups
+    // dimension - like sorting your data on something
+    // dimensions in this examples are the names 
+    /*
+    totalSpend = nameDim.group().reduceSum(dc.pluck("spend"))
+        group() - createing a group based on nameDim
+        reduceSum - take all valuwes in data base and add them up based on each person
+            get the following data {'Tom', 300}  {'Bob', 475}  {'Alice', 550}
+        we have reduced the data we dont need and summed up the spend based on the nameDim
+    */
+        
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- d3, crossfilter and dc must be loaded in this specific order -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="spend-chart"></div>
+    <div id="store-chart"></div>
+    <div id="state-chart"></div>
+
+    <script>
+        queue()
+            .defer(d3.json, "data/transactions.json")
+            .await(makeCharts);
+
+        function makeCharts(error, transactionsData) {
+
+            let ndx = crossfilter(transactionsData);
+
+            let nameDim = ndx.dimension(dc.pluck("name"));
+            let totalSpend = nameDim.group().reduceSum(dc.pluck("spend"))
+            let spendChart = dc.barChart("#spend-chart");
+            
+            let storeDim = ndx.dimension(dc.pluck("store"));
+            let totalSpendByStore = storeDim.group().reduceSum(dc.pluck("spend"))
+            let storeChart = dc.barChart("#store-chart");
+            
+            let stateDim = ndx.dimension(dc.pluck("state"));
+            let totalSpendByState = stateDim.group().reduceSum(dc.pluck("spend"))
+            let stateChart = dc.barChart("#state-chart");
+
+            spendChart
+                .width(300)
+                .height(150)
+                .dimension(nameDim)
+                .group(totalSpend)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .xAxisLabel("Person")
+                .yAxis().ticks(4);
+
+            storeChart
+                .width(300)
+                .height(150)
+                .dimension(storeDim)
+                .group(totalSpendByStore)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .xAxisLabel("Store")
+                .yAxis().ticks(4);
+
+            stateChart
+                .width(300)
+                .height(150)
+                .dimension(stateDim)
+                .group(totalSpendByState)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .xAxisLabel("State")
+                .yAxis().ticks(4);
+
+            dc.renderAll();
+        }
+
+
+        /*
+        function makeCharts(error, transactionsData){}
+            - error - if there is an error eg chant load data file, goes in here so we can act on it
+            - other than that 
+        */
+    </script>
+</body>
+
+</html>

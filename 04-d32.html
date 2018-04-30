@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>D3 and SVG</h1>
+    <div id="svg-goes-here"></div>
+    <script>
+        let myData = [10, 30, 40, 50, 40, 30,10];
+        let myColours = ["red","orange","yellow","green","yellow","orange","red"];
+                // i  = [0,  1,  2,  3,  4]
+        let w = myData.length*120;
+        let h = 200;
+
+        let mySVG = d3.select("#svg-goes-here")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h);
+            
+        mySVG.selectAll("circle")
+        .data(myData)
+        .enter()
+        .append("circle")
+        .attr("fill", function(d,i){
+            return myColours[i];
+        })
+        .attr("cx", function(d,i){
+            return 50 + (i*100);
+        })
+        .attr("cy", h/2 )
+        .attr("r", function(d,i){
+            return d;
+        });
+            
+    </script>
+</body>
+
+</html>
+<!--
+.enter() - creates a new element for each data value given to it
+.attr("cx", function(d,i){return 50 + (i*100)}
+    d - one individual element of datas
+    i - index no of where the d is in the array
+         1st run - d=40 and i=0 __ cx = 50
+         2nd run - d=50 and i=1 __ cx = 150
+    use of d and i is just the convention, could name the arguments anything
+-->

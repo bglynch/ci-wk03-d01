@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>SVG</title>
+    <style type="text/css">
+        * {
+            /*border: 1px solid black;*/
+        }
+    </style>
+</head>
+<!--
+- x and y values start at top left of screen
+- circle above rectangle because it was declared second
+
+
+-->
+
+<body>
+    <h1>My First SVG</h1>
+    <svg>
+        <rect 
+            x='10'                    
+            y='10' 
+            height='100' 
+            width='50' 
+            stroke="red" 
+            stroke-width="3"
+            fill="green"
+        />
+        <circle
+        cx="60"
+        cy="110"
+        r="40"
+        stroke="blue" 
+        stroke-width="3"
+        fill="black"
+        />
+    </svg>
+    <div>
+        <svg height="300">
+            <rect
+                x='2'                    
+                y='2' 
+                height='280' 
+                width='100'
+                fill="black"
+            />
+            <circle
+                cx="52"
+                cy="52"
+                r="40"
+                fill="red"
+            />
+            <circle
+                cx="52"
+                cy="142"
+                r="40"
+                fill="orange"
+            />
+            <polygon
+                points="92,232 65,270 65,250 15,250  15,216 65,216 65,196"
+                fill="green"
+            />
+
+
+        </svg>
+        <svg height="320">
+            
+            <rect
+                x='50'                    
+                y='130' 
+                height='180' 
+                width='40'
+                fill="black"
+                stroke="black" 
+                stroke-width="3"
+            />
+            <circle
+                cx="70"
+                cy="70"
+                r="60"
+                fill="Yellow"
+                stroke="black" 
+                stroke-width="5"
+            />
+            <rect
+                x='50'                    
+                y='280' 
+                height='30' 
+                width='40'
+                fill="white"
+                stroke="black" 
+                stroke-width="3"
+            />
+            <rect
+                x='50'                    
+                y='220' 
+                height='30' 
+                width='40'
+                fill="white"
+                stroke="black" 
+                stroke-width="3"
+            />
+            <rect
+                x='50'                    
+                y='160' 
+                height='30' 
+                width='40'
+                fill="white"
+                stroke="black" 
+                stroke-width="3"
+            />
+        </svg>
+    </div>
+    <div>
+        <svg>
+        <polygon
+            points="25,25 80,25 80,80 "
+            fill="lemonchiffon"
+        />
+        </svg>
+    </div>
+    
+</body>
+
+</html>
