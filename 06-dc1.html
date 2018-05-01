@@ -17,9 +17,11 @@
 </head>
 
 <body>
+    <a href="javascript:dc.filterAll(); dc.renderAll();"><strong>Reset All</strong></a>
     <div id="spend-chart"></div>
     <div id="store-chart"></div>
     <div id="state-chart"></div>
+    <div id="line-chart"></div>
 
     <script>
         queue()
@@ -29,6 +31,14 @@
         function makeCharts(error, transactionsData) {
 
             let ndx = crossfilter(transactionsData);
+            
+            let parseDate = d3.time.format("%d/%m/%Y").parse;
+            //need to put in expected format. %d = day, %m = month, %Y = year
+            //Y = 4 digit year, y = 2 digit year
+            
+            transactionsData.forEach(function(d,i){
+                d.date = parseDate(d.date);
+            });
 
             let nameDim = ndx.dimension(dc.pluck("name"));
             let totalSpend = nameDim.group().reduceSum(dc.pluck("spend"))
@@ -39,8 +49,35 @@
             let storeChart = dc.barChart("#store-chart");
             
             let stateDim = ndx.dimension(dc.pluck("state"));
+                /* Other way to pluck state data
+                let stateDim = ndx.dimension(finction(d,i){
+                    return d.state
+                })
+                */
             let totalSpendByState = stateDim.group().reduceSum(dc.pluck("spend"))
-            let stateChart = dc.barChart("#state-chart");
+            let stateChart = dc.pieChart("#state-chart");
+            /*
+            Other way to show above
+            dc.barChart("#state-chart")
+            .height(300)
+            .radius(100)
+            .dimension(stateDim)
+            .group(totalSpendByState)
+            */
+            
+            let dateDim = ndx.dimension(dc.pluck("date"));
+            let totalSpendByDate = dateDim.group().reduceSum(dc.pluck("date"));
+            
+            let minDate = dateDim.bottom(1)[0].date;
+            /*.bottom pick the earliest date
+            .bottom(1) - selects one object
+            .bottom(1)[0] - select first element in the array
+             console.log each step to see what happens
+            /*console.log(dateDim.bottom(1));
+            console.log(dateDim.bottom(1)[0]);
+            console.log(dateDim.bottom(1)[0].date);*/
+            let maxDate = dateDim.top(1)[0].date
+            let lineSpend = dc.lineChart("#line-chart")
 
             spendChart
                 .width(300)
@@ -63,15 +100,20 @@
                 .yAxis().ticks(4);
 
             stateChart
-                .width(300)
-                .height(150)
+                .height(300)
+                .radius(100)
                 .dimension(stateDim)
-                .group(totalSpendByState)
-                .x(d3.scale.ordinal())
-                .xUnits(dc.units.ordinal)
-                .xAxisLabel("State")
-                .yAxis().ticks(4);
-
+                .group(totalSpendByState);
+                
+            lineSpend
+                .width(1000)
+                .height(300)
+                .dimension(dateDim)
+                .group(totalSpendByDate)
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xAxisLabel("Month");
+            
+            
             dc.renderAll();
         }
 
