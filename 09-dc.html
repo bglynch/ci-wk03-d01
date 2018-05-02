@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.js"></script>
+</head>
+
+<body>
+    <a href="javascript:dc.filterAll();dc.renderAll();"><strong>Reset All</strong></a>
+    <div id="spend-chart"></div>
+    <div id="spend-chart2"></div>
+    <div id="state-chart"></div>
+    <div id="line-chart"></div>
+    
+    <script>
+    
+    // Example of using Custom Reduce Functions
+    
+        queue()
+            .defer(d3.json, "data/transactions.json")
+            .await(makeCharts);
+
+        function makeCharts(error, transactionsData) {
+            let ndx = crossfilter(transactionsData);
+
+            let nameDim = ndx.dimension(dc.pluck('name'));
+            let companySpend = nameDim.group().reduce(
+                function(p,v) {
+                    p.count++;
+                    p.companyShare += +v["spend"] * 0.75;
+                    return p;
+                },
+                function(p,v) {
+                    p.count--;
+                    p.companyShare -= +v["spend"] * 0.75;
+                    return p;
+                },
+                function() {
+                    return { count: 0, companyShare: 0 };
+                });
+
+            let spendChart = dc.barChart("#spend-chart");
+            
+            let barColors = d3.scale.ordinal().range(["red", "blue", "green", "yellow"]);
+
+            spendChart
+                .width(300)
+                .height(150)
+                .dimension(nameDim)
+                .group(companySpend)
+                .valueAccessor(function(p) {
+                    return p.value.companyShare;
+                })
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .xAxisLabel("Company's Share")
+                .yAxis().ticks(4);
+                
+            let secondDim = ndx.dimension(dc.pluck("name"));
+            let spendByName = secondDim.group().reduceSum(dc.pluck("spend"));
+            
+            dc.barChart("#spend-chart2")
+                .width(300)
+                .height(150)
+                .dimension(secondDim)
+                .group(spendByName)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .xAxisLabel("Person")
+                .colorAccessor(function(d){
+                    return d.key;
+                })
+                .colors(barColors)
+                .yAxis().ticks(4);
+            
+
+            dc.renderAll();
+        }
+    </script>
+</body>
+
+</html>
