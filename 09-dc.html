@@ -31,6 +31,10 @@
         function makeCharts(error, transactionsData) {
             let ndx = crossfilter(transactionsData);
 
+
+            
+            let barColors = d3.scale.ordinal().range(["red", "blue", "green", "yellow"]);
+
             let nameDim = ndx.dimension(dc.pluck('name'));
             let companySpend = nameDim.group().reduce(
                 function(p,v) {
@@ -46,27 +50,23 @@
                 function() {
                     return { count: 0, companyShare: 0 };
                 });
-
             let spendChart = dc.barChart("#spend-chart");
-            
-            let barColors = d3.scale.ordinal().range(["red", "blue", "green", "yellow"]);
-
             spendChart
-                .width(300)
-                .height(150)
                 .dimension(nameDim)
                 .group(companySpend)
                 .valueAccessor(function(p) {
                     return p.value.companyShare;
                 })
+                .width(300)
+                .height(150)
                 .x(d3.scale.ordinal())
                 .xUnits(dc.units.ordinal)
                 .xAxisLabel("Company's Share")
                 .yAxis().ticks(4);
                 
+            
             let secondDim = ndx.dimension(dc.pluck("name"));
             let spendByName = secondDim.group().reduceSum(dc.pluck("spend"));
-            
             dc.barChart("#spend-chart2")
                 .width(300)
                 .height(150)

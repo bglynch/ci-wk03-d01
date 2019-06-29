@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- d3, crossfilter and dc must be loaded in this specific order -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter/1.3.12/crossfilter.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.8/dc.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/queue-async/1.0.7/queue.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <a href="javascript:dc.filterAll(); dc.renderAll();"><strong>Reset All</strong></a>
+    <div id="spend-chart"></div>
+    <div id="spend-chart2"></div>
+    <div id="store-chart"></div>
+    <div id="state-chart"></div>
+    <div id="line-chart"></div>
+
+    <script>
+    /* global crossfilter, dc, d3, queue */
+        queue()
+            .defer(d3.json, "data/transactions.json")
+            .await(makeCharts);
+
+        function makeCharts(error, transactionsData) {
+
+/*--------------   PASS DATA THOUGH CROSSFILTER   ---------------------------*/
+            let ndx = crossfilter(transactionsData);
+            
+            let parseDate = d3.time.format("%d/%m/%Y").parse;
+            //need to put in expected format. %d = day, %m = month, %Y = year
+            //Y = 4 digit year, y = 2 digit year
+            
+            transactionsData.forEach(function(d,i){
+                d.date = parseDate(d.date);
+            });
+
+/*--------------   BAR CHART: SPENDING BY PERSON   ---------------------------*/
+            let nameDim = ndx.dimension(dc.pluck("name"));
+            let totalSpend = nameDim.group().reduceSum(dc.pluck("spend"));
+            let spendChart = dc.barChart("#spend-chart");
+            
+            spendChart
+                .width(300)
+                .height(150)
+                .dimension(nameDim)
+                .group(totalSpend)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .xAxisLabel("Person")
+                .yAxis().ticks(4);
+
+/*--------------   BAR CHART: SPENDING BY PERSON   ---------------------------*/
+/*
+var genderDimension = mycrossfilter.dimension(function(data) {return data.gender;});
+var genderGroup = genderDimension.group().reduceCount();
+*/
+
+            // let nameDim2 = ndx.dimension(dc.pluck("name"));
+            // let totalSpend2 = nameDim2.group().reduceSum(dc.pluck("spend"));
+            let nameDim2 = ndx.dimension(function(data) {
+                if (data.store != "B"){return data.name;}
+            });
+            let totalSpend2 = nameDim2.group().reduceSum(function(data) {
+                if (data.store != "B"){
+                    console.log(data.name, data.spend, data.store);
+                    return data.spend;
+                    
+                }
+            });
+            let spendChart2 = dc.barChart("#spend-chart2");
+            
+            spendChart2
+                .width(300)
+                .height(150)
+                .dimension(nameDim2)
+                .group(totalSpend2)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .xAxisLabel("Person")
+                .yAxis().ticks(4);
+            
+/*--------------   BAR CHART: SPENDING BY STORE   ---------------------------*/
+            let storeDim = ndx.dimension(dc.pluck("store"));
+            let totalSpendByStore = storeDim.group().reduceSum(dc.pluck("spend"))
+            let storeChart = dc.barChart("#store-chart");
+            
+            storeChart
+                .width(300)
+                .height(150)
+                .dimension(storeDim)
+                .group(totalSpendByStore)
+                .x(d3.scale.ordinal())
+                .xUnits(dc.units.ordinal)
+                .xAxisLabel("Store")
+                .yAxis().ticks(4);
+            
+/*--------------   PIE CHART: SPENDING BY STATE   ---------------------------*/
+            let stateDim = ndx.dimension(dc.pluck("state"));
+                /* Other way to pluck state data
+                let stateDim = ndx.dimension(finction(d,i){
+                    return d.state
+                })
+                */
+            let totalSpendByState = stateDim.group().reduceSum(dc.pluck("spend"));
+            let stateChart = dc.pieChart("#state-chart");
+            /*
+            Other way to show above
+            dc.barChart("#state-chart")
+            .height(300)
+            .radius(100)
+            .dimension(stateDim)
+            .group(totalSpendByState)
+            */
+            
+            stateChart
+                .height(300)
+                .radius(100)
+                .dimension(stateDim)
+                .group(totalSpendByState);            
+            
+/*--------------   LINE CHART: SPENDING BY PERSON AND DATE   ---------------------------*/
+            let dateDim = ndx.dimension(dc.pluck("date"));
+            let totalSpendByDate = dateDim.group().reduceSum(dc.pluck("date"));
+            
+            let minDate = dateDim.bottom(1)[0].date;
+            /*.bottom pick the earliest date
+            .bottom(1) - selects one object
+            .bottom(1)[0] - select first element in the array
+             console.log each step to see what happens
+            */
+            console.log(dateDim.bottom(1));
+            console.log(dateDim.bottom(1)[0]);
+            console.log(dateDim.bottom(1)[0].date);
+            
+            let maxDate = dateDim.top(1)[0].date;
+            let lineSpend = dc.lineChart("#line-chart");
+
+            lineSpend
+                .width(1000)
+                .height(300)
+                .dimension(dateDim)
+                .group(totalSpendByDate)
+                .x(d3.time.scale().domain([minDate, maxDate]))
+                .xAxisLabel("Month");
+            
+            
+            dc.renderAll();
+        }
+
+
+        /*
+        function makeCharts(error, transactionsData){}
+            - error - if there is an error eg chant load data file, goes in here so we can act on it
+            - other than that 
+        */
+    </script>
+</body>
+
+</html>
